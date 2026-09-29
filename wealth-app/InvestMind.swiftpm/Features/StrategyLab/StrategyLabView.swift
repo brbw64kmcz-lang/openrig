@@ -60,6 +60,12 @@ private struct DerivativesPanel: View {
                                   contracts: contracts, contractSize: contractSize)
     }
 
+    private func strikeLabel(spot: Double, factor: Double) -> String {
+        let price: String = Fmt.num(spot * factor)
+        let change: String = Fmt.pct(factor - 1, digits: 0, sign: true)
+        return "\(price) € (\(change))"
+    }
+
     private struct PayoffPoint: Identifiable {
         var id: Double { price }
         let price: Double
@@ -87,8 +93,8 @@ private struct DerivativesPanel: View {
                 .pickerStyle(.menu)
                 Text(kind.plain).font(.caption).foregroundStyle(kind == .callShort || kind == .putShort ? Theme.warning : Theme.textSecondary)
                 if kind.isOption {
-                    LabeledSlider(title: "Basispreis", value: $strikeFactor, range: 0.7...1.3, step: 0.01) {
-                        Fmt.num(spot * $0) + " € (" + Fmt.pct($0 - 1, digits: 0, sign: true) + ")"
+                    LabeledSlider(title: "Basispreis", value: $strikeFactor, range: 0.7...1.3, step: 0.01) { factor in
+                        strikeLabel(spot: spot, factor: factor)
                     }
                     LabeledSlider(title: "Laufzeit", value: $months, range: 1...24, step: 1) { "\(Int($0)) Monate" }
                 }
@@ -213,7 +219,7 @@ private struct GamesPanel: View {
                 ForEach(GameLibrary.all) { Text($0.title).tag($0.id) }
             }
             .pickerStyle(.segmented)
-            .onChange(of: gameID) { _ in reset() }
+            .onChange(of: gameID) { _, _ in reset() }
 
             Card(title: game.title, icon: "person.2.fill") {
                 Text(game.story).font(.callout).foregroundStyle(Theme.textSecondary)
@@ -226,7 +232,7 @@ private struct GamesPanel: View {
                     ForEach(RepeatedStrategy.allCases) { Text($0.rawValue).tag($0) }
                 }
                 .pickerStyle(.menu)
-                .onChange(of: opponent) { _ in reset() }
+                .onChange(of: opponent) { _, _ in reset() }
                 Text("Die Strategie des Gegners ist geheim – versuche sie zu erkennen!")
                     .font(.caption).foregroundStyle(Theme.textTertiary)
                 HStack(spacing: 10) {

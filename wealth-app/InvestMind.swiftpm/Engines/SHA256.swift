@@ -42,25 +42,32 @@ enum SHA256 {
         while offset < message.count {
             for t in 0..<16 {
                 let j = offset + t * 4
-                w[t] = UInt32(message[j]) << 24 | UInt32(message[j + 1]) << 16
-                    | UInt32(message[j + 2]) << 8 | UInt32(message[j + 3])
+                let b0: UInt32 = UInt32(message[j]) << 24
+                let b1: UInt32 = UInt32(message[j + 1]) << 16
+                let b2: UInt32 = UInt32(message[j + 2]) << 8
+                let b3: UInt32 = UInt32(message[j + 3])
+                w[t] = b0 | b1 | b2 | b3
             }
             for t in 16..<64 {
-                let s0 = rotr(w[t - 15], 7) ^ rotr(w[t - 15], 18) ^ (w[t - 15] >> 3)
-                let s1 = rotr(w[t - 2], 17) ^ rotr(w[t - 2], 19) ^ (w[t - 2] >> 10)
-                w[t] = w[t - 16] &+ s0 &+ w[t - 7] &+ s1
+                let x15: UInt32 = w[t - 15]
+                let x2: UInt32 = w[t - 2]
+                let s0: UInt32 = rotr(x15, 7) ^ rotr(x15, 18) ^ (x15 >> 3)
+                let s1: UInt32 = rotr(x2, 17) ^ rotr(x2, 19) ^ (x2 >> 10)
+                let sum1: UInt32 = w[t - 16] &+ s0
+                w[t] = sum1 &+ w[t - 7] &+ s1
             }
 
             var a = h[0], b = h[1], c = h[2], d = h[3]
             var e = h[4], f = h[5], g = h[6], hh = h[7]
 
             for t in 0..<64 {
-                let S1 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25)
-                let ch = (e & f) ^ (~e & g)
-                let temp1 = hh &+ S1 &+ ch &+ k[t] &+ w[t]
-                let S0 = rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22)
-                let maj = (a & b) ^ (a & c) ^ (b & c)
-                let temp2 = S0 &+ maj
+                let S1: UInt32 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25)
+                let ch: UInt32 = (e & f) ^ (~e & g)
+                let t1a: UInt32 = hh &+ S1 &+ ch
+                let temp1: UInt32 = t1a &+ k[t] &+ w[t]
+                let S0: UInt32 = rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22)
+                let maj: UInt32 = (a & b) ^ (a & c) ^ (b & c)
+                let temp2: UInt32 = S0 &+ maj
                 hh = g
                 g = f
                 f = e

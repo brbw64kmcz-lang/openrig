@@ -154,7 +154,9 @@ struct HedgingGame {
         let h = min(max(hedgeRatio, 0), 1)
         let later = spot * exp(0.28 * sqrt(0.5) * rng.normal())
         let fut = futurePrice
-        let hedged = h * tons * fut + (1 - h) * tons * later
+        let hedgedPart: Double = h * tons * fut
+        let spotPart: Double = (1 - h) * tons * later
+        let hedged: Double = hedgedPart + spotPart
         let unhedged = tons * later
         rounds.append(Round(id: rounds.count + 1, hedgeRatio: h, spotToday: spot, futurePrice: fut,
                             spotLater: later, costHedged: hedged, costUnhedged: unhedged))

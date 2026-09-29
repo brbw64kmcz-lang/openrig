@@ -126,7 +126,7 @@ struct SimulatorView: View {
             Toggle("Inflation berücksichtigen (2 % p. a.)", isOn: $input.showReal).tint(Theme.purple)
             Toggle("Crash-Test: Einbruch um 30 %", isOn: $crashTest)
                 .tint(Theme.purple)
-                .onChange(of: crashTest) { on in
+                .onChange(of: crashTest) { _, on in
                     input.crashYear = on ? max(1, input.years / 2) : nil
                 }
             if crashTest {

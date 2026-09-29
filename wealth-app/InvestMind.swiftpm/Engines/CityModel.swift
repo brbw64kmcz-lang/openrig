@@ -277,8 +277,12 @@ struct CityModel {
         let schools = Double(cells.filter { $0.building == .school }.count)
         let transit = Double(cells.filter { $0.building == .transit }.count)
         let industry = Double(cells.filter { $0.building == .industry }.count)
-        let quality = max(0, min(100, 45 + parks * 7 + schools * 5 + transit * 6 - industry * 6))
-        let co2 = max(0, industry * 12 + Double(population) / 1_000 * 3 - transit * 4 - parks * 1.5)
+        let plus: Double = parks * 7.0 + schools * 5.0 + transit * 6.0
+        let rawQuality: Double = 45.0 + plus - industry * 6.0
+        let quality: Double = max(0.0, min(100.0, rawQuality))
+        let popLoad: Double = Double(population) / 1_000.0 * 3.0
+        let rawCO2: Double = industry * 12.0 + popLoad - transit * 4.0 - parks * 1.5
+        let co2: Double = max(0.0, rawCO2)
         return CityStats(year: year, avgPrice: avgPrice, avgRent: avgRent, population: population, jobs: jobs,
                          vacancy: vacancy, quality: quality, co2: co2)
     }

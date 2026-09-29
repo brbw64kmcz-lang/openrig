@@ -179,7 +179,7 @@ struct OnboardingView: View {
     private var riskStep: some View {
         VStack(alignment: .leading, spacing: 18) {
             title("Wie viel Schwankung hältst du aus?", "Stell dir vor, du legst 10.000 € an.")
-            let worst = [0.03, 0.08, 0.15, 0.22, 0.32, 0.45, 0.65][max(0, min(6, draft.riskTolerance - 1))]
+            let worst: Double = worstCase
             Card {
                 Text("In einem schlechten Jahr könnten daraus werden:")
                     .foregroundStyle(Theme.textSecondary)
@@ -233,6 +233,12 @@ struct OnboardingView: View {
     }
 
     // MARK: Helfer
+
+    private var worstCase: Double {
+        let table: [Double] = [0.03, 0.08, 0.15, 0.22, 0.32, 0.45, 0.65]
+        let index: Int = max(0, min(6, draft.riskTolerance - 1))
+        return table[index]
+    }
 
     private func title(_ t: String, _ sub: String) -> some View {
         VStack(alignment: .leading, spacing: 6) {

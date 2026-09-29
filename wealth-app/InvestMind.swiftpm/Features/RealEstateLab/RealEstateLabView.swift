@@ -25,8 +25,8 @@ struct RealEstateLabView: View {
             InfoHint(text: "So rechnet das Modell: Jedes Gebäude wirkt auf die Nachbarschaft (Radius 2). U-Bahn +12 %, Park +8 %, Schule +6 %, Industrie −10 % – schwächer mit zunehmender Entfernung. Dazu kommen Nachfrage (Jobs im Verhältnis zu Wohnraum) und Zinsen. Das Modell ist bewusst einfach, damit du die Zusammenhänge nachvollziehen kannst.")
         }
         .onAppear { refresh() }
-        .onChange(of: version) { _ in refresh() }
-        .onChange(of: heatmap) { _ in refresh() }
+        .onChange(of: version) { _, _ in refresh() }
+        .onChange(of: heatmap) { _, _ in refresh() }
     }
 
     private func refresh() {

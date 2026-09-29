@@ -94,8 +94,10 @@ final class CityScene {
 
     private func color(for cell: CityCell, heatmap: Bool, minP: Double, maxP: Double) -> Color {
         guard heatmap, cell.building.isRentable else { return cell.building.color }
-        let t = (cell.pricePerSqm - minP) / (maxP - minP)
+        let t: Double = (cell.pricePerSqm - minP) / (maxP - minP)
         // Von Blau (günstig) über Lila zu Weiß (teuer)
-        return Color(red: 0.3 + 0.7 * t, green: 0.35 + 0.55 * t * t, blue: 1.0)
+        let r: Double = 0.3 + 0.7 * t
+        let g: Double = 0.35 + 0.55 * t * t
+        return Color(red: r, green: g, blue: 1.0)
     }
 }

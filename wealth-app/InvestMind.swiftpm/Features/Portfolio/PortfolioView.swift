@@ -114,12 +114,21 @@ struct PortfolioView: View {
                             .font(.caption).foregroundStyle(Theme.textTertiary)
                     }
                     Spacer()
-                    Text((t.kind == .deposit || t.kind == .sell ? "+" : "−") + Fmt.eur(t.amount, digits: 2))
+                    Text(amountText(t))
                         .font(.subheadline.monospacedDigit())
-                        .foregroundStyle(t.kind == .deposit || t.kind == .sell ? Theme.positive : Theme.textPrimary)
+                        .foregroundStyle(isIncoming(t) ? Theme.positive : Theme.textPrimary)
                 }
             }
         }
+    }
+
+    private func isIncoming(_ t: Transaction) -> Bool {
+        t.kind == .deposit || t.kind == .sell
+    }
+
+    private func amountText(_ t: Transaction) -> String {
+        let sign: String = isIncoming(t) ? "+" : "−"
+        return sign + Fmt.eur(t.amount, digits: 2)
     }
 
     private func title(for t: Transaction) -> String {
