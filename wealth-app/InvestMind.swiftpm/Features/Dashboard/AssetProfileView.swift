@@ -255,7 +255,7 @@ struct TradeSheet: View {
                                   range: 50...max(maxAmount, 100), step: 50) { Fmt.eur($0) }
                     KeyValueRow(label: "Kurs", value: Fmt.num(asset.price, digits: 2) + " €")
                     KeyValueRow(label: "Stückzahl", value: Fmt.num(amount / asset.price, digits: 5))
-                    KeyValueRow(label: "Verfügbar", value: isBuy ? Fmt.eur(portfolio.cash) : Fmt.eur((portfolio.holding(asset.id)?.quantity ?? 0) * asset.price))
+                    KeyValueRow(label: "Verfügbar", value: Fmt.eur(maxAmount))
                 }
                 if courseMissing, let id = asset.requiredCourseID, let course = CourseLibrary.course(id) {
                     Section {
@@ -295,7 +295,9 @@ struct TradeSheet: View {
     }
 
     private var maxAmount: Double {
-        isBuy ? portfolio.cash : (portfolio.holding(asset.id)?.quantity ?? 0) * asset.price
+        if isBuy { return portfolio.cash }
+        let owned: Double = portfolio.holding(asset.id)?.quantity ?? 0.0
+        return owned * asset.price
     }
 
     private func execute() {
@@ -303,7 +305,8 @@ struct TradeSheet: View {
             if isBuy {
                 try portfolio.buy(assetID: asset.id, amount: amount, price: asset.price)
             } else {
-                let qty = min(amount / asset.price, portfolio.holding(asset.id)?.quantity ?? 0)
+                let owned: Double = portfolio.holding(asset.id)?.quantity ?? 0.0
+                let qty: Double = min(amount / asset.price, owned)
                 try portfolio.sell(assetID: asset.id, quantity: qty, price: asset.price)
             }
             dismiss()

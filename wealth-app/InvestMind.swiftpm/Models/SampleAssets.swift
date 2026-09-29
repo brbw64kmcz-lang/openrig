@@ -127,11 +127,12 @@ enum SampleAssets {
                 scores[value] = spec.scores[i]
             }
             let history = makeHistory(endPrice: spec.price, drift: spec.er, vol: spec.vol, rng: &rng)
-            let last = history.count >= 2 ? history[history.count - 2].value : spec.price
+            let last: Double = history.count >= 2 ? history[history.count - 2].value : spec.price
+            let dayChange: Double = last > 0 ? spec.price / last - 1.0 : 0.0
             return Asset(
                 id: spec.id, name: spec.name, symbol: spec.symbol, assetClass: spec.cls,
                 summary: spec.summary, price: spec.price,
-                dayChange: last > 0 ? spec.price / last - 1 : 0,
+                dayChange: dayChange,
                 history: history, expectedReturn: spec.er, volatility: spec.vol,
                 incomeYield: spec.income, riskClass: spec.risk,
                 valueScores: scores, valueReasons: spec.reasons,

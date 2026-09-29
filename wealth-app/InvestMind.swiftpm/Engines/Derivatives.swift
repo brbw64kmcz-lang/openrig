@@ -36,7 +36,10 @@ enum OptionPricing {
     /// s: Kurs, k: Basispreis, t: Laufzeit in Jahren, r: Zins, sigma: Volatilität
     static func blackScholes(call: Bool, s: Double, k: Double, t: Double, r: Double, sigma: Double) -> Double {
         guard s > 0, k > 0 else { return 0 }
-        guard t > 0, sigma > 0 else { return max(0, call ? s - k : k - s) }
+        guard t > 0, sigma > 0 else {
+            let intrinsic: Double = call ? s - k : k - s
+            return max(0.0, intrinsic)
+        }
         let d1: Double = d1Value(s: s, k: k, t: t, r: r, sigma: sigma)
         let d2: Double = d1 - sigma * sqrt(t)
         let discountedStrike: Double = k * exp(-r * t)
@@ -56,7 +59,10 @@ enum OptionPricing {
 
     /// Delta: Wie stark ändert sich der Optionspreis, wenn der Kurs um 1 steigt?
     static func delta(call: Bool, s: Double, k: Double, t: Double, r: Double, sigma: Double) -> Double {
-        guard s > 0, k > 0, t > 0, sigma > 0 else { return call ? (s > k ? 1 : 0) : (s < k ? -1 : 0) }
+        guard s > 0, k > 0, t > 0, sigma > 0 else {
+            if call { return s > k ? 1.0 : 0.0 }
+            return s < k ? -1.0 : 0.0
+        }
         let d1: Double = d1Value(s: s, k: k, t: t, r: r, sigma: sigma)
         return call ? normalCDF(d1) : normalCDF(d1) - 1
     }

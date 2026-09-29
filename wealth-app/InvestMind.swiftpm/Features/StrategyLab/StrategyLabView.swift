@@ -50,13 +50,17 @@ private struct DerivativesPanel: View {
     }
 
     private var position: DerivativePosition {
-        let spot = asset?.price ?? 100
-        let strike = spot * strikeFactor
-        let isCall = kind == .callLong || kind == .callShort
-        let premium = kind.isOption
-            ? OptionPricing.blackScholes(call: isCall, s: spot, k: strike, t: months / 12, r: 0.03, sigma: asset?.volatility ?? 0.2)
-            : 0
-        return DerivativePosition(kind: kind, strike: kind.isOption ? strike : spot, premium: premium,
+        let spot: Double = asset?.price ?? 100.0
+        let strike: Double = spot * strikeFactor
+        let isCall: Bool = kind == .callLong || kind == .callShort
+        let sigma: Double = asset?.volatility ?? 0.2
+        let years: Double = months / 12.0
+        var premium: Double = 0.0
+        if kind.isOption {
+            premium = OptionPricing.blackScholes(call: isCall, s: spot, k: strike, t: years, r: 0.03, sigma: sigma)
+        }
+        let agreedPrice: Double = kind.isOption ? strike : spot
+        return DerivativePosition(kind: kind, strike: agreedPrice, premium: premium,
                                   contracts: contracts, contractSize: contractSize)
     }
 
@@ -72,12 +76,19 @@ private struct DerivativesPanel: View {
         let profit: Double
     }
 
-    var body: some View {
-        let spot = asset?.price ?? 100
-        let pos = position
-        let points = stride(from: spot * 0.5, through: spot * 1.5, by: spot / 50).map {
-            PayoffPoint(price: $0, profit: pos.profit(at: $0))
+    private func payoffPoints(spot: Double, position: DerivativePosition) -> [PayoffPoint] {
+        var result: [PayoffPoint] = []
+        for step in 0...50 {
+            let price: Double = spot * (0.5 + Double(step) / 50.0)
+            result.append(PayoffPoint(price: price, profit: position.profit(at: price)))
         }
+        return result
+    }
+
+    var body: some View {
+        let spot: Double = asset?.price ?? 100.0
+        let pos: DerivativePosition = position
+        let points: [PayoffPoint] = payoffPoints(spot: spot, position: pos)
         VStack(alignment: .leading, spacing: Theme.spacing) {
             Card(title: "Position", icon: "slider.horizontal.3") {
                 Picker("Basiswert", selection: $underlyingID) {

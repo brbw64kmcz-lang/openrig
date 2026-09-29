@@ -9,13 +9,16 @@ struct LineAreaChart: View {
     var showAxes = true
 
     var body: some View {
-        let minV = points.map(\.value).min() ?? 0
-        let maxV = points.map(\.value).max() ?? 1
-        let pad = max((maxV - minV) * 0.1, maxV * 0.001)
+        let minV: Double = points.map(\.value).min() ?? 0.0
+        let maxV: Double = points.map(\.value).max() ?? 1.0
+        let spread: Double = (maxV - minV) * 0.1
+        let pad: Double = max(spread, maxV * 0.001)
+        let lower: Double = minV - pad
+        let upper: Double = maxV + pad
         Chart(points) { p in
             AreaMark(
                 x: .value("Datum", p.date),
-                yStart: .value("Basis", minV - pad),
+                yStart: .value("Basis", lower),
                 yEnd: .value("Wert", p.value)
             )
             .foregroundStyle(LinearGradient(colors: [color.opacity(0.35), color.opacity(0.0)],
@@ -24,7 +27,7 @@ struct LineAreaChart: View {
                 .foregroundStyle(color)
                 .lineStyle(StrokeStyle(lineWidth: 2))
         }
-        .chartYScale(domain: (minV - pad)...(maxV + pad))
+        .chartYScale(domain: lower...upper)
         .chartXAxis(showAxes ? .automatic : .hidden)
         .chartYAxis(showAxes ? .automatic : .hidden)
         .frame(height: height)

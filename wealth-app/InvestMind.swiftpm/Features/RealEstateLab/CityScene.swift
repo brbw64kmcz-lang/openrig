@@ -54,8 +54,9 @@ final class CityScene {
     func update(model: CityModel, heatmap: Bool, selected: Int?, owned: Int?) {
         cityNode.childNodes.forEach { $0.removeFromParentNode() }
         let prices = model.cells.filter { $0.building.isRentable }.map(\.pricePerSqm)
-        let minP = prices.min() ?? CityModel.basePrice
-        let maxP = max(prices.max() ?? CityModel.basePrice, minP + 1)
+        let minP: Double = prices.min() ?? CityModel.basePrice
+        let highest: Double = prices.max() ?? CityModel.basePrice
+        let maxP: Double = max(highest, minP + 1.0)
 
         for cell in model.cells {
             let (x, y) = model.coords(cell.id)

@@ -136,11 +136,17 @@ struct ChangeLabel: View {
         HStack(spacing: 3) {
             Image(systemName: up ? "arrowtriangle.up.fill" : "arrowtriangle.down.fill")
                 .font(.system(size: 8))
-            Text(Fmt.pct(value, sign: true) + (suffix.map { " \($0)" } ?? ""))
+            Text(labelText)
                 .font(.caption.weight(.medium))
         }
         .foregroundStyle(up ? Theme.positive : Theme.negative)
         .accessibilityLabel(up ? "gestiegen um \(Fmt.pct(value))" : "gefallen um \(Fmt.pct(abs(value)))")
+    }
+
+    private var labelText: String {
+        let base: String = Fmt.pct(value, sign: true)
+        guard let suffix else { return base }
+        return base + " " + suffix
     }
 }
 
