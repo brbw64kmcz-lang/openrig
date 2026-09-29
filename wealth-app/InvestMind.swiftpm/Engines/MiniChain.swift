@@ -169,7 +169,8 @@ struct MiniChain {
             if k > 0 {
                 for i in 1...k { poisson *= lambda / Double(i) }
             }
-            sum -= poisson * (1 - pow(q / p, Double(z - k)))
+            let ratioPower: Double = pow(q / p, Double(z - k))
+            sum -= poisson * (1.0 - ratioPower)
         }
         return max(0, sum)
     }
@@ -178,7 +179,8 @@ struct MiniChain {
     static func blockReward(height: Int) -> Double {
         let halvings = height / 210_000
         if halvings >= 64 { return 0 }
-        return 50.0 / pow(2, Double(halvings))
+        let divisor: Double = pow(2.0, Double(halvings))
+        return 50.0 / divisor
     }
 }
 

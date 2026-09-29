@@ -181,13 +181,18 @@ struct RealEstateLabView: View {
         return LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 12)], spacing: 12) {
             StatTile(title: "Ø Preis pro m²", value: Fmt.eur(s.avgPrice))
             StatTile(title: "Ø Miete pro m²", value: Fmt.eur(s.avgRent, digits: 2))
-            StatTile(title: "Mietrendite (brutto)", value: Fmt.pct(s.avgPrice > 0 ? s.avgRent * 12 / s.avgPrice : 0))
+            StatTile(title: "Mietrendite (brutto)", value: Fmt.pct(grossYield(s)))
             StatTile(title: "Einwohner", value: Fmt.num(Double(s.population), digits: 0))
             StatTile(title: "Arbeitsplätze", value: Fmt.num(Double(s.jobs), digits: 0))
             StatTile(title: "Leerstand", value: Fmt.pct(s.vacancy))
             StatTile(title: "Lebensqualität", value: "\(Int(s.quality)) / 100")
             StatTile(title: "CO₂-Index", value: Fmt.num(s.co2, digits: 0), caption: "niedriger ist besser")
         }
+    }
+
+    private func grossYield(_ s: CityStats) -> Double {
+        guard s.avgPrice > 0 else { return 0.0 }
+        return s.avgRent * 12.0 / s.avgPrice
     }
 
     private var priceChart: some View {

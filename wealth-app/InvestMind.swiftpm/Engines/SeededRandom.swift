@@ -20,7 +20,8 @@ struct SeededGenerator: RandomNumberGenerator {
 
     /// Gleichverteilte Zahl in (0, 1]
     mutating func unit() -> Double {
-        let v = Double(next() >> 11) / Double(1 << 53)
+        let top: Double = Double(next() >> 11)
+        let v: Double = top / 9_007_199_254_740_992.0
         return max(v, 1e-12)
     }
 
@@ -28,17 +29,21 @@ struct SeededGenerator: RandomNumberGenerator {
     mutating func normal() -> Double {
         let u1 = unit()
         let u2 = unit()
-        return sqrt(-2 * log(u1)) * cos(2 * Double.pi * u2)
+        let radius: Double = sqrt(-2.0 * log(u1))
+        let angle: Double = 2.0 * Double.pi * u2
+        return radius * cos(angle)
     }
 }
 
 /// Verteilungsfunktion der Standardnormalverteilung
 func normalCDF(_ x: Double) -> Double {
-    0.5 * (1 + erf(x / 2.0.squareRoot()))
+    let scaled: Double = x / 2.0.squareRoot()
+    return 0.5 * (1.0 + erf(scaled))
 }
 
 func percentile(_ sorted: [Double], _ p: Double) -> Double {
     guard !sorted.isEmpty else { return 0 }
-    let idx = min(sorted.count - 1, max(0, Int((Double(sorted.count - 1) * p).rounded())))
+    let position: Double = (Double(sorted.count - 1) * p).rounded()
+    let idx: Int = min(sorted.count - 1, max(0, Int(position)))
     return sorted[idx]
 }

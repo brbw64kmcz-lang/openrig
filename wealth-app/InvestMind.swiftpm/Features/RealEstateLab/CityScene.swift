@@ -13,10 +13,12 @@ final class CityScene {
         scene.background.contents = UIColor(Theme.bgTop)
 
         // Boden
-        let ground = SCNBox(width: CGFloat(n) + 1, height: 0.2, length: CGFloat(n) + 1, chamferRadius: 0.2)
+        let groundSize: CGFloat = CGFloat(n) + 1.0
+        let ground = SCNBox(width: groundSize, height: 0.2, length: groundSize, chamferRadius: 0.2)
         ground.firstMaterial?.diffuse.contents = UIColor(red: 0.10, green: 0.13, blue: 0.28, alpha: 1)
         let groundNode = SCNNode(geometry: ground)
-        groundNode.position = SCNVector3(n / 2 - 0.5, -0.1, n / 2 - 0.5)
+        let center: Float = n / 2.0 - 0.5
+        groundNode.position = SCNVector3(center, Float(-0.1), center)
         scene.rootNode.addChildNode(groundNode)
         scene.rootNode.addChildNode(cityNode)
 
@@ -25,8 +27,9 @@ final class CityScene {
         camera.fieldOfView = 45
         camera.zFar = 200
         cameraNode.camera = camera
-        cameraNode.position = SCNVector3(n / 2 + 6.5, 9, n / 2 + 6.5)
-        cameraNode.look(at: SCNVector3(n / 2 - 0.5, 0, n / 2 - 0.5))
+        let camXZ: Float = n / 2.0 + 6.5
+        cameraNode.position = SCNVector3(camXZ, Float(9), camXZ)
+        cameraNode.look(at: SCNVector3(center, Float(0), center))
         scene.rootNode.addChildNode(cameraNode)
 
         // Licht
@@ -42,7 +45,9 @@ final class CityScene {
         sun.light?.type = .directional
         sun.light?.intensity = 900
         sun.light?.castsShadow = true
-        sun.eulerAngles = SCNVector3(-Float.pi / 3, Float.pi / 4, 0)
+        let tilt: Float = -Float.pi / 3.0
+        let turn: Float = Float.pi / 4.0
+        sun.eulerAngles = SCNVector3(tilt, turn, Float(0))
         scene.rootNode.addChildNode(sun)
     }
 
@@ -55,8 +60,12 @@ final class CityScene {
         for cell in model.cells {
             let (x, y) = model.coords(cell.id)
             let b = cell.building
-            let priceFactor = b.isRentable ? min(max(cell.pricePerSqm / CityModel.basePrice, 0.5), 2.5) : 1
-            let height = CGFloat(b.baseHeight * priceFactor)
+            let relative: Double = cell.pricePerSqm / CityModel.basePrice
+            let priceFactor: Double = b.isRentable ? min(max(relative, 0.5), 2.5) : 1.0
+            let height: CGFloat = CGFloat(b.baseHeight * priceFactor)
+            let fx: Float = Float(x)
+            let fy: Float = Float(y)
+            let halfHeight: Float = Float(height) / 2.0
             let footprint: CGFloat = b == .empty ? 0.92 : 0.78
             let box = SCNBox(width: footprint, height: max(height, 0.02), length: footprint, chamferRadius: 0.04)
             let material = SCNMaterial()
@@ -67,18 +76,23 @@ final class CityScene {
             }
             box.materials = [material]
             let node = SCNNode(geometry: box)
-            node.position = SCNVector3(Float(x), Float(height / 2), Float(y))
+            node.position = SCNVector3(fx, halfHeight, fy)
             cityNode.addChildNode(node)
 
             if b == .park {
-                addTree(at: SCNVector3(Float(x) - 0.15, 0, Float(y) - 0.1))
-                addTree(at: SCNVector3(Float(x) + 0.2, 0, Float(y) + 0.15))
+                let x1: Float = fx - 0.15
+                let z1: Float = fy - 0.1
+                let x2: Float = fx + 0.2
+                let z2: Float = fy + 0.15
+                addTree(at: SCNVector3(x1, Float(0), z1))
+                addTree(at: SCNVector3(x2, Float(0), z2))
             }
             if cell.id == owned {
                 let marker = SCNNode(geometry: SCNSphere(radius: 0.14))
                 marker.geometry?.firstMaterial?.diffuse.contents = UIColor(Theme.positive)
                 marker.geometry?.firstMaterial?.emission.contents = UIColor(Theme.positive.opacity(0.6))
-                marker.position = SCNVector3(Float(x), Float(height) + 0.35, Float(y))
+                let markerY: Float = Float(height) + 0.35
+                marker.position = SCNVector3(fx, markerY, fy)
                 cityNode.addChildNode(marker)
             }
         }
@@ -88,7 +102,7 @@ final class CityScene {
         let cone = SCNCone(topRadius: 0, bottomRadius: 0.16, height: 0.45)
         cone.firstMaterial?.diffuse.contents = UIColor(red: 0.25, green: 0.65, blue: 0.45, alpha: 1)
         let node = SCNNode(geometry: cone)
-        node.position = SCNVector3(p.x, 0.3, p.z)
+        node.position = SCNVector3(p.x, Float(0.3), p.z)
         cityNode.addChildNode(node)
     }
 

@@ -94,7 +94,7 @@ struct SimulatorView: View {
                         Circle().fill(a.assetClass.color).frame(width: 10, height: 10)
                         Text(a.name).font(.subheadline).foregroundStyle(Theme.textPrimary)
                         Spacer()
-                        Text(Fmt.pct((input.weights[id] ?? 0) / max(totalWeight, 0.0001), digits: 0))
+                        Text(Fmt.pct(share(of: id), digits: 0))
                             .font(.subheadline.monospacedDigit()).foregroundStyle(Theme.textSecondary)
                             .frame(width: 50, alignment: .trailing)
                         Stepper("", onIncrement: { adjust(id, by: 0.05) }, onDecrement: { adjust(id, by: -0.05) })
@@ -112,8 +112,14 @@ struct SimulatorView: View {
         }
     }
 
+    private func share(of id: String) -> Double {
+        let weight: Double = input.weights[id] ?? 0.0
+        return weight / max(totalWeight, 0.0001)
+    }
+
     private func adjust(_ id: String, by delta: Double) {
-        let v = (input.weights[id] ?? 0) + delta
+        let current: Double = input.weights[id] ?? 0.0
+        let v: Double = current + delta
         if v <= 0.001 {
             input.weights[id] = nil
         } else {
@@ -209,9 +215,7 @@ struct SimulatorView: View {
         let total = max(totalWeight, 0.0001)
         return Card(title: "Passt die Strategie zu deinen Werten?", icon: "leaf.fill") {
             ForEach(InvestValue.allCases.filter { app.profile.values.contains($0) }) { v in
-                let score = input.weights.reduce(0.0) { sum, kv in
-                    sum + kv.value / total * (market.asset(kv.key)?.valueScores[v] ?? 0.5)
-                }
+                let score: Double = strategyScore(for: v, total: total)
                 HStack {
                     Label(v.rawValue, systemImage: v.icon).font(.subheadline)
                     Spacer()
@@ -221,6 +225,15 @@ struct SimulatorView: View {
                 ProgressBar(value: score, height: 6)
             }
         }
+    }
+
+    private func strategyScore(for value: InvestValue, total: Double) -> Double {
+        var score: Double = 0.0
+        for (id, weight) in input.weights {
+            let assetScore: Double = market.asset(id)?.valueScores[value] ?? 0.5
+            score += weight / total * assetScore
+        }
+        return score
     }
 
     private var methodCard: some View {

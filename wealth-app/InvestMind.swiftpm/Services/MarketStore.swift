@@ -45,16 +45,17 @@ final class MarketStore: ObservableObject {
 
     /// Ein kleiner Zufallsschritt pro Asset (entspricht grob einer Minute Handel).
     private func tick() {
-        let dt = 1.0 / (365 * 24 * 60)
+        let dt: Double = 1.0 / 525_600.0
+        let step: Double = sqrt(dt) * 3.0
         var updated = assets
         for i in updated.indices where updated[i].volatility > 0 {
             let a = updated[i]
             let shock = rng.normal()
-            let factor = exp(a.volatility * sqrt(dt) * shock * 3)
-            let newPrice = a.price * factor
-            let yesterday = a.history.count >= 2 ? a.history[a.history.count - 2].value : a.price
+            let factor: Double = exp(a.volatility * step * shock)
+            let newPrice: Double = a.price * factor
+            let yesterday: Double = a.history.count >= 2 ? a.history[a.history.count - 2].value : a.price
             updated[i].price = newPrice
-            updated[i].dayChange = yesterday > 0 ? newPrice / yesterday - 1 : 0
+            updated[i].dayChange = yesterday > 0 ? newPrice / yesterday - 1.0 : 0.0
             if let last = updated[i].history.last {
                 updated[i].history[updated[i].history.count - 1] = PricePoint(date: last.date, value: newPrice)
             }

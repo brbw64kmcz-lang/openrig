@@ -183,7 +183,7 @@ struct OnboardingView: View {
             Card {
                 Text("In einem schlechten Jahr könnten daraus werden:")
                     .foregroundStyle(Theme.textSecondary)
-                Text(Fmt.eur(10_000 * (1 - worst)))
+                Text(Fmt.eur(10_000.0 * (1.0 - worst)))
                     .font(.system(size: 40, weight: .bold))
                     .foregroundStyle(worst > 0.3 ? Theme.negative : Theme.textPrimary)
                 Text("Das wäre ein Rückgang um \(Fmt.pct(worst, digits: 0)). Wäre das für dich in Ordnung?")
@@ -284,13 +284,16 @@ struct OnboardingView: View {
         }
         let year = Calendar.current.component(.year, from: Date())
         let kinds = selectedGoals.isEmpty ? [GoalKind.wealth] : GoalKind.allCases.filter { selectedGoals.contains($0) }
-        draft.goals = kinds.enumerated().map { idx, kind in
-            Goal(kind: kind,
-                 targetAmount: idx == 0 ? goalAmount : goalAmount / 2,
-                 targetYear: year + Int(goalYears) + idx * 2,
-                 monthlyContribution: 250,
-                 portfolioShare: idx == 0 ? 0.7 : 0.3 / Double(max(kinds.count - 1, 1)))
+        let otherShare: Double = 0.3 / Double(max(kinds.count - 1, 1))
+        var goals: [Goal] = []
+        for (idx, kind) in kinds.enumerated() {
+            let amount: Double = idx == 0 ? goalAmount : goalAmount / 2.0
+            let targetYear: Int = year + Int(goalYears) + idx * 2
+            let share: Double = idx == 0 ? 0.7 : otherShare
+            goals.append(Goal(kind: kind, targetAmount: amount, targetYear: targetYear,
+                              monthlyContribution: 250, portfolioShare: share))
         }
+        draft.goals = goals
         draft.onboardingDone = true
         app.profile = draft
     }

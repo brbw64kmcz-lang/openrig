@@ -173,8 +173,13 @@ struct HedgingGame {
 
     private func stdev(_ xs: [Double]) -> Double {
         guard xs.count > 1 else { return 0 }
-        let m = xs.reduce(0, +) / Double(xs.count)
-        return sqrt(xs.map { ($0 - m) * ($0 - m) }.reduce(0, +) / Double(xs.count - 1))
+        let m: Double = xs.reduce(0.0, +) / Double(xs.count)
+        var squares: Double = 0.0
+        for x in xs {
+            let d: Double = x - m
+            squares += d * d
+        }
+        return sqrt(squares / Double(xs.count - 1))
     }
 
     var hedgedSpread: Double { stdev(rounds.map(\.costHedged)) }

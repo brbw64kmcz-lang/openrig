@@ -156,9 +156,13 @@ enum SampleAssets {
             values[i] = p
         }
         let now = Date()
-        return values.enumerated().map { idx, v in
-            PricePoint(date: now.addingTimeInterval(Double(idx - days + 1) * 86_400), value: v)
+        var points: [PricePoint] = []
+        points.reserveCapacity(days)
+        for (idx, v) in values.enumerated() {
+            let offset: Double = Double(idx - days + 1) * 86_400.0
+            points.append(PricePoint(date: now.addingTimeInterval(offset), value: v))
         }
+        return points
     }
 
     // MARK: Kennzahlen je Assetklasse

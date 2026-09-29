@@ -146,7 +146,8 @@ final class PortfolioStore: ObservableObject, BrokerService {
         if let i = holdings.firstIndex(where: { $0.assetID == assetID }) {
             let old = holdings[i]
             let newQty = old.quantity + qty
-            holdings[i].averagePrice = (old.quantity * old.averagePrice + amount) / newQty
+            let oldCost: Double = old.quantity * old.averagePrice
+            holdings[i].averagePrice = (oldCost + amount) / newQty
             holdings[i].quantity = newQty
         } else {
             holdings.append(Holding(assetID: assetID, quantity: qty, averagePrice: price))
@@ -187,11 +188,15 @@ final class PortfolioStore: ObservableObject, BrokerService {
     }
 
     func totalValue(market: MarketStore) -> Double {
-        cash + holdings.reduce(0) { $0 + value(of: $1, market: market) }
+        var sum: Double = cash
+        for h in holdings { sum += value(of: h, market: market) }
+        return sum
     }
 
     func invested(market: MarketStore) -> Double {
-        holdings.reduce(0) { $0 + $1.quantity * $1.averagePrice }
+        var sum: Double = 0.0
+        for h in holdings { sum += h.quantity * h.averagePrice }
+        return sum
     }
 
     struct Slice: Identifiable {
@@ -207,30 +212,34 @@ final class PortfolioStore: ObservableObject, BrokerService {
             guard let a = market.asset(h.assetID) else { continue }
             byClass[a.assetClass, default: 0] += h.quantity * a.price
         }
-        let total = max(byClass.values.reduce(0, +), 1)
-        return byClass
-            .filter { $0.value > 0 }
-            .map { Slice(assetClass: $0.key, value: $0.value, share: $0.value / total) }
-            .sorted { $0.value > $1.value }
+        let total: Double = max(byClass.values.reduce(0.0, +), 1.0)
+        var slices: [Slice] = []
+        for (cls, value) in byClass where value > 0 {
+            slices.append(Slice(assetClass: cls, value: value, share: value / total))
+        }
+        return slices.sorted { $0.value > $1.value }
     }
 
     /// Laufender Ertrag pro Monat (Mieten, Dividenden, Zinsen) – geschätzt
     func monthlyIncome(market: MarketStore) -> Double {
-        let fromHoldings = holdings.reduce(0.0) { sum, h in
-            guard let a = market.asset(h.assetID) else { return sum }
-            return sum + h.quantity * a.price * a.incomeYield
+        var fromHoldings: Double = 0.0
+        for h in holdings {
+            guard let a = market.asset(h.assetID) else { continue }
+            fromHoldings += h.quantity * a.price * a.incomeYield
         }
-        return (fromHoldings + cash * 0.02) / 12
+        let cashIncome: Double = cash * 0.02
+        return (fromHoldings + cashIncome) / 12.0
     }
 
     /// Gewichtete Risikoklasse 1–7
     func riskScore(market: MarketStore) -> Double {
         let total = totalValue(market: market)
         guard total > 0 else { return 1 }
-        var weighted = cash / total * 1
+        var weighted: Double = cash / total
         for h in holdings {
             guard let a = market.asset(h.assetID) else { continue }
-            weighted += value(of: h, market: market) / total * Double(a.riskClass)
+            let share: Double = value(of: h, market: market) / total
+            weighted += share * Double(a.riskClass)
         }
         return weighted
     }
@@ -241,11 +250,11 @@ final class PortfolioStore: ObservableObject, BrokerService {
         var points: [PricePoint] = []
         points.reserveCapacity(reference.count)
         for idx in reference.indices {
-            var v = cash
+            var v: Double = cash
             for h in holdings {
-                if let a = market.asset(h.assetID), idx < a.history.count {
-                    v += h.quantity * a.history[idx].value
-                }
+                guard let a = market.asset(h.assetID), idx < a.history.count else { continue }
+                let price: Double = a.history[idx].value
+                v += h.quantity * price
             }
             points.append(PricePoint(date: reference[idx].date, value: v))
         }

@@ -300,11 +300,17 @@ struct ProgressBar: View {
                 Capsule().fill(Color.white.opacity(0.1))
                 Capsule()
                     .fill(Theme.accentGradient)
-                    .frame(width: max(height, geo.size.width * min(max(value, 0), 1)))
+                    .frame(width: barWidth(total: geo.size.width))
             }
         }
         .frame(height: height)
         .accessibilityValue(Fmt.pct(value, digits: 0))
+    }
+
+    private func barWidth(total: CGFloat) -> CGFloat {
+        let clamped: Double = min(max(value, 0.0), 1.0)
+        let width: CGFloat = total * CGFloat(clamped)
+        return max(height, width)
     }
 }
 

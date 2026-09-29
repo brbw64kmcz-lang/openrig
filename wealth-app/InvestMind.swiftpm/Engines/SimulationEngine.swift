@@ -45,7 +45,9 @@ enum SimulationEngine {
 
         var medianCAGR: Double {
             guard finalInvested > 0, let years = points.last?.year, years > 0 else { return 0 }
-            return pow(max(finalP50, 1) / finalInvested, 1 / Double(years)) - 1
+            let ratio: Double = max(finalP50, 1.0) / finalInvested
+            let exponent: Double = 1.0 / Double(years)
+            return pow(ratio, exponent) - 1.0
         }
     }
 
@@ -66,11 +68,16 @@ enum SimulationEngine {
             guard w > 0, let a = market.asset(id) else { return nil }
             return (a, w)
         }
-        let total = items.reduce(0) { $0 + $1.1 }
+        var total: Double = 0.0
+        for item in items { total += item.1 }
         guard total > 0 else { return (0, 0, 0) }
-        let norm = items.map { ($0.0, $0.1 / total) }
-        let mu = norm.reduce(0) { $0 + $1.0.expectedReturn * $1.1 }
-        let income = norm.reduce(0) { $0 + $1.0.incomeYield * $1.1 }
+        let norm: [(Asset, Double)] = items.map { ($0.0, $0.1 / total) }
+        var mu: Double = 0.0
+        var income: Double = 0.0
+        for (asset, weight) in norm {
+            mu += asset.expectedReturn * weight
+            income += asset.incomeYield * weight
+        }
         var variance = 0.0
         for (a, wa) in norm {
             for (b, wb) in norm {
@@ -92,8 +99,9 @@ enum SimulationEngine {
     static func run(_ input: Input, mu: Double, sigma: Double, income: Double) -> Result {
         let months = max(input.years, 1) * 12
         let dt = 1.0 / 12.0
-        let drift = (mu - 0.5 * sigma * sigma) * dt
-        let shockScale = sigma * sqrt(dt)
+        let halfVar: Double = 0.5 * sigma * sigma
+        let drift: Double = (mu - halfVar) * dt
+        let shockScale: Double = sigma * sqrt(dt)
         var rng = SeededGenerator(seed: input.seed)
 
         // yearValues[y][path]
@@ -115,7 +123,8 @@ enum SimulationEngine {
                     value *= (1 - input.crashSize)
                 }
                 peak = max(peak, value)
-                maxDD = max(maxDD, peak > 0 ? 1 - value / peak : 0)
+                let drawdown: Double = peak > 0 ? 1.0 - value / peak : 0.0
+                maxDD = max(maxDD, drawdown)
                 if m % 12 == 0 {
                     let year = m / 12
                     let deflator: Double = input.showReal ? pow(1.0 + input.inflation, Double(year)) : 1.0
@@ -129,7 +138,7 @@ enum SimulationEngine {
         var points: [YearPoint] = []
         for y in 0...input.years {
             let sorted = yearValues[y].sorted()
-            let invested = input.initial + input.monthly * 12 * Double(y)
+            let invested: Double = input.initial + input.monthly * 12.0 * Double(y)
             points.append(YearPoint(year: y, invested: invested,
                                     p10: percentile(sorted, 0.1), p50: percentile(sorted, 0.5), p90: percentile(sorted, 0.9)))
         }
@@ -165,6 +174,8 @@ enum SimulationEngine {
         let r = annualReturn / 12
         let growth = pow(1 + r, n)
         if abs(r) < 1e-9 { return current + monthly * n }
-        return current * growth + monthly * (growth - 1) / r
+        let grownCurrent: Double = current * growth
+        let savings: Double = monthly * (growth - 1.0) / r
+        return grownCurrent + savings
     }
 }

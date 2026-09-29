@@ -93,7 +93,8 @@ struct AssetProfileView: View {
 
     private func priceCard(_ asset: Asset) -> some View {
         let points = range.slice(asset.history)
-        let first = points.first?.value ?? asset.price
+        let first: Double = points.first?.value ?? asset.price
+        let rangeChange: Double = first > 0 ? asset.price / first - 1.0 : 0.0
         return Card {
             HStack(alignment: .firstTextBaseline) {
                 Text(Fmt.num(asset.price, digits: 2) + " €")
@@ -106,13 +107,13 @@ struct AssetProfileView: View {
             HStack {
                 PillPicker(options: ChartRange.allCases, selection: $range) { $0.rawValue }
                 Spacer()
-                ChangeLabel(value: first > 0 ? asset.price / first - 1 : 0, suffix: range.rawValue)
+                ChangeLabel(value: rangeChange, suffix: range.rawValue)
             }
             if let h = portfolio.holding(asset.id) {
                 Divider().overlay(Theme.cardBorder)
                 KeyValueRow(label: "Du besitzt", value: "\(Fmt.num(h.quantity, digits: 4)) · \(Fmt.eur(h.quantity * asset.price))")
                 KeyValueRow(label: "Gewinn/Verlust",
-                            value: Fmt.pct(asset.price / h.averagePrice - 1, sign: true),
+                            value: Fmt.pct(asset.price / h.averagePrice - 1.0, sign: true),
                             valueColor: asset.price >= h.averagePrice ? Theme.positive : Theme.negative)
             }
         }

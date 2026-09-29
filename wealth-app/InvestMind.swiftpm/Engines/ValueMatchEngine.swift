@@ -38,17 +38,20 @@ enum ValueMatchEngine {
         let parts = InvestValue.allCases
             .filter { chosen.contains($0) }
             .map { Part(value: $0, score: asset.valueScores[$0] ?? 0.5, reason: asset.valueReasons[$0]) }
-        let valueAvg = parts.isEmpty ? 0.5 : parts.map(\.score).reduce(0, +) / Double(parts.count)
+        let scoreSum: Double = parts.map(\.score).reduce(0.0, +)
+        let valueAvg: Double = parts.isEmpty ? 0.5 : scoreSum / Double(parts.count)
         let riskFit = riskFit(assetRisk: asset.riskClass, tolerance: profile.riskTolerance)
-        let total = valueWeight * valueAvg + (1 - valueWeight) * riskFit
+        let valuePart: Double = valueWeight * valueAvg
+        let riskPart: Double = (1.0 - valueWeight) * riskFit
+        let total: Double = valuePart + riskPart
         return Result(total: total, riskFit: riskFit, parts: parts)
     }
 
     /// Ein Asset, das riskanter ist als die Toleranz, wird stärker bestraft als ein sichereres.
     static func riskFit(assetRisk: Int, tolerance: Int) -> Double {
         let diff = Double(assetRisk - tolerance)
-        let penalty = diff > 0 ? diff / 4 : -diff / 8
-        return max(0, 1 - penalty)
+        let penalty: Double = diff > 0 ? diff / 4.0 : -diff / 8.0
+        return max(0.0, 1.0 - penalty)
     }
 
     /// Wie gut passt das gesamte Depot zu einem einzelnen Wert (z. B. Nachhaltigkeit)?
@@ -56,10 +59,12 @@ enum ValueMatchEngine {
         let total = portfolio.totalValue(market: market)
         guard total > 0 else { return 0 }
         let cashScore = market.asset("cash")?.valueScores[value] ?? 0.5
-        var score = portfolio.cash / total * cashScore
+        var score: Double = portfolio.cash / total * cashScore
         for h in portfolio.holdings {
             guard let a = market.asset(h.assetID) else { continue }
-            score += portfolio.value(of: h, market: market) / total * (a.valueScores[value] ?? 0.5)
+            let weight: Double = portfolio.value(of: h, market: market) / total
+            let assetScore: Double = a.valueScores[value] ?? 0.5
+            score += weight * assetScore
         }
         return score
     }

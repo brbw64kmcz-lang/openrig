@@ -46,8 +46,8 @@ struct GoalsView: View {
 
     private func goalCard(_ goal: Goal) -> some View {
         let year = Calendar.current.component(.year, from: Date())
-        let years = Double(max(goal.targetYear - year, 1))
-        let current = portfolio.totalValue(market: market) * goal.portfolioShare
+        let years: Double = Double(max(goal.targetYear - year, 1))
+        let current: Double = portfolio.totalValue(market: market) * goal.portfolioShare
         let r = expectedReturn
         let projected = SimulationEngine.futureValue(current: current, monthly: goal.monthlyContribution, years: years, annualReturn: r)
         let needed = SimulationEngine.requiredMonthly(target: goal.targetAmount, current: current, years: years, annualReturn: r)

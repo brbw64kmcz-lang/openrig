@@ -70,14 +70,16 @@ struct DashboardView: View {
     private var kpis: some View {
         let total = portfolio.totalValue(market: market)
         let history = portfolio.history(market: market)
-        let monthAgo = history.count > 30 ? history[history.count - 31].value : total
-        let yearStart = history.first?.value ?? total
+        let monthAgo: Double = history.count > 30 ? history[history.count - 31].value : total
+        let yearStart: Double = history.first?.value ?? total
+        let monthChange: Double = monthAgo > 0 ? total / monthAgo - 1.0 : 0.0
+        let yearChange: Double = yearStart > 0 ? total / yearStart - 1.0 : 0.0
         let columns = [GridItem(.adaptive(minimum: 150), spacing: 12)]
         return LazyVGrid(columns: columns, spacing: 12) {
-            StatTile(title: "Gesamtvermögen", value: Fmt.eur(total), change: monthAgo > 0 ? total / monthAgo - 1 : 0)
+            StatTile(title: "Gesamtvermögen", value: Fmt.eur(total), change: monthChange)
             StatTile(title: "Monatlicher Cashflow", value: Fmt.eur(portfolio.monthlyIncome(market: market)),
                      caption: "Mieten, Dividenden, Zinsen")
-            StatTile(title: "Rendite (12 Monate)", value: Fmt.pct(yearStart > 0 ? total / yearStart - 1 : 0, sign: true),
+            StatTile(title: "Rendite (12 Monate)", value: Fmt.pct(yearChange, sign: true),
                      caption: "ohne Einzahlungen")
             StatTile(title: "Risiko (Portfolio)", value: Fmt.num(portfolio.riskScore(market: market), digits: 1) + " / 7",
                      caption: riskCaption)
@@ -96,7 +98,9 @@ struct DashboardView: View {
 
     private var performance: some View {
         let points = range.slice(portfolio.history(market: market))
-        let change = (points.first?.value ?? 0) > 0 ? (points.last?.value ?? 0) / (points.first?.value ?? 1) - 1 : 0
+        let firstValue: Double = points.first?.value ?? 0.0
+        let lastValue: Double = points.last?.value ?? 0.0
+        let change: Double = firstValue > 0 ? lastValue / firstValue - 1.0 : 0.0
         return Card(title: "Deine Performance", icon: "chart.bar.xaxis") {
             HStack {
                 ChangeLabel(value: change, suffix: "(\(range.rawValue))")
@@ -355,8 +359,8 @@ struct GoalProgressRow: View {
     let goal: Goal
 
     var body: some View {
-        let current = portfolio.totalValue(market: market) * goal.portfolioShare
-        let progress = goal.targetAmount > 0 ? current / goal.targetAmount : 0
+        let current: Double = portfolio.totalValue(market: market) * goal.portfolioShare
+        let progress: Double = goal.targetAmount > 0 ? current / goal.targetAmount : 0.0
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Image(systemName: progress >= 1 ? "checkmark.circle.fill" : goal.kind.icon)
