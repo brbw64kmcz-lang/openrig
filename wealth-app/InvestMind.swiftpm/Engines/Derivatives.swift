@@ -37,19 +37,27 @@ enum OptionPricing {
     static func blackScholes(call: Bool, s: Double, k: Double, t: Double, r: Double, sigma: Double) -> Double {
         guard s > 0, k > 0 else { return 0 }
         guard t > 0, sigma > 0 else { return max(0, call ? s - k : k - s) }
-        let d1 = (log(s / k) + (r + 0.5 * sigma * sigma) * t) / (sigma * sqrt(t))
-        let d2 = d1 - sigma * sqrt(t)
+        let d1: Double = d1Value(s: s, k: k, t: t, r: r, sigma: sigma)
+        let d2: Double = d1 - sigma * sqrt(t)
+        let discountedStrike: Double = k * exp(-r * t)
         if call {
-            return s * normalCDF(d1) - k * exp(-r * t) * normalCDF(d2)
+            return s * normalCDF(d1) - discountedStrike * normalCDF(d2)
         } else {
-            return k * exp(-r * t) * normalCDF(-d2) - s * normalCDF(-d1)
+            return discountedStrike * normalCDF(-d2) - s * normalCDF(-d1)
         }
+    }
+
+    static func d1Value(s: Double, k: Double, t: Double, r: Double, sigma: Double) -> Double {
+        let drift: Double = (r + 0.5 * sigma * sigma) * t
+        let numerator: Double = log(s / k) + drift
+        let denominator: Double = sigma * sqrt(t)
+        return numerator / denominator
     }
 
     /// Delta: Wie stark ändert sich der Optionspreis, wenn der Kurs um 1 steigt?
     static func delta(call: Bool, s: Double, k: Double, t: Double, r: Double, sigma: Double) -> Double {
         guard s > 0, k > 0, t > 0, sigma > 0 else { return call ? (s > k ? 1 : 0) : (s < k ? -1 : 0) }
-        let d1 = (log(s / k) + (r + 0.5 * sigma * sigma) * t) / (sigma * sqrt(t))
+        let d1: Double = d1Value(s: s, k: k, t: t, r: r, sigma: sigma)
         return call ? normalCDF(d1) : normalCDF(d1) - 1
     }
 }

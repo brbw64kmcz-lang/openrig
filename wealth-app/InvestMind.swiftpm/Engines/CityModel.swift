@@ -220,16 +220,21 @@ struct CityModel {
 
     /// Nachfrage nach Wohnraum im Verhältnis zum Angebot (1 = ausgeglichen)
     var demandRatio: Double {
-        let workersWanted = Double(jobs) / 0.55
-        return max(0.5, min(1.8, workersWanted / Double(max(population, 1))))
+        let workersWanted: Double = Double(jobs) / 0.55
+        let residents: Double = Double(max(population, 1))
+        let ratio: Double = workersWanted / residents
+        return max(0.5, min(1.8, ratio))
     }
 
     private mutating func recomputePrices(smoothing: Double) {
-        let demand = demandRatio
-        let rateFactor = 1 + (0.035 - interestRate) * 6
+        let demand: Double = demandRatio
+        let rateFactor: Double = 1.0 + (0.035 - interestRate) * 6.0
+        let demandFactor: Double = 0.7 + 0.3 * demand
         for i in cells.indices {
-            let target = CityModel.basePrice * (1 + locationScore(i)) * (0.7 + 0.3 * demand) * rateFactor
-            cells[i].pricePerSqm += (target - cells[i].pricePerSqm) * smoothing
+            let location: Double = 1.0 + locationScore(i)
+            let target: Double = CityModel.basePrice * location * demandFactor * rateFactor
+            let diff: Double = target - cells[i].pricePerSqm
+            cells[i].pricePerSqm += diff * smoothing
         }
     }
 
@@ -242,9 +247,13 @@ struct CityModel {
             for i in cells.indices { cells[i].pricePerSqm *= 1.015 }
             recomputePrices(smoothing: 0.3)
             // Steuereinnahmen füllen das Baubudget
-            budget += Double(population) / 1_000 * 0.8 + Double(jobs) / 1_000 * 1.2
+            let popTax: Double = Double(population) / 1_000.0 * 0.8
+            let jobTax: Double = Double(jobs) / 1_000.0 * 1.2
+            budget += popTax + jobTax
             if var inv = investment {
-                inv.rentCollected += rentPerSqmMonth(inv.cellID) * inv.sqm * 12 * (1 - vacancy)
+                let monthlyRent: Double = rentPerSqmMonth(inv.cellID) * inv.sqm
+                let occupied: Double = 1.0 - vacancy
+                inv.rentCollected += monthlyRent * 12.0 * occupied
                 investment = inv
             }
             history.append(stats())
@@ -264,15 +273,19 @@ struct CityModel {
     }
 
     var vacancy: Double {
-        max(0.01, min(0.3, 0.06 - (demandRatio - 1) * 0.1))
+        let raw: Double = 0.06 - (demandRatio - 1.0) * 0.1
+        return max(0.01, min(0.3, raw))
     }
 
     private var rentableIDs: [Int] { cells.indices.filter { cells[$0].building.isRentable } }
 
     func stats() -> CityStats {
         let ids = rentableIDs
-        let avgPrice = ids.isEmpty ? CityModel.basePrice : ids.map { cells[$0].pricePerSqm }.reduce(0, +) / Double(ids.count)
-        let avgRent = ids.isEmpty ? 0 : ids.map { rentPerSqmMonth($0) }.reduce(0, +) / Double(ids.count)
+        let count: Double = Double(max(ids.count, 1))
+        let priceSum: Double = ids.map { cells[$0].pricePerSqm }.reduce(0.0, +)
+        let rentSum: Double = ids.map { rentPerSqmMonth($0) }.reduce(0.0, +)
+        let avgPrice: Double = ids.isEmpty ? CityModel.basePrice : priceSum / count
+        let avgRent: Double = ids.isEmpty ? 0.0 : rentSum / count
         let parks = Double(cells.filter { $0.building == .park }.count)
         let schools = Double(cells.filter { $0.building == .school }.count)
         let transit = Double(cells.filter { $0.building == .transit }.count)
@@ -305,6 +318,7 @@ struct CityModel {
     /// Gesamtrendite: Wertänderung + eingenommene Miete (nach 25 % Kosten)
     func investmentReturn() -> Double? {
         guard let inv = investment, let value = investmentValue(), inv.purchasePrice > 0 else { return nil }
-        return (value - inv.purchasePrice + inv.rentCollected * 0.75) / inv.purchasePrice
+        let gain: Double = value - inv.purchasePrice + inv.rentCollected * 0.75
+        return gain / inv.purchasePrice
     }
 }

@@ -75,7 +75,9 @@ enum SimulationEngine {
         for (a, wa) in norm {
             for (b, wb) in norm {
                 let rho = a.id == b.id ? 1.0 : correlation(a.assetClass, b.assetClass)
-                variance += wa * wb * a.volatility * b.volatility * rho
+                let weights: Double = wa * wb
+                let vols: Double = a.volatility * b.volatility
+                variance += weights * vols * rho
             }
         }
         return (mu, sqrt(max(variance, 0)), income)
@@ -106,7 +108,8 @@ enum SimulationEngine {
             var maxDD = 0.0
             yearValues[0].append(value)
             for m in 1...months {
-                value *= exp(drift + shockScale * rng.normal())
+                let shock: Double = shockScale * rng.normal()
+                value *= exp(drift + shock)
                 value += input.monthly
                 if let crash = input.crashYear, m == crash * 12 {
                     value *= (1 - input.crashSize)
@@ -115,7 +118,7 @@ enum SimulationEngine {
                 maxDD = max(maxDD, peak > 0 ? 1 - value / peak : 0)
                 if m % 12 == 0 {
                     let year = m / 12
-                    let deflator = input.showReal ? pow(1 + input.inflation, Double(year)) : 1
+                    let deflator: Double = input.showReal ? pow(1.0 + input.inflation, Double(year)) : 1.0
                     yearValues[year].append(value / deflator)
                 }
             }

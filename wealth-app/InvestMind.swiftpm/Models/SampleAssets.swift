@@ -149,7 +149,9 @@ enum SampleAssets {
         for i in stride(from: days - 2, through: 0, by: -1) {
             let shock = rng.normal()
             // Rückwärts: vorheriger Preis = aktueller / Wachstumsfaktor
-            let growth = exp((drift - 0.5 * vol * vol) * dt + vol * sqrt(dt) * shock)
+            let driftPart: Double = (drift - 0.5 * vol * vol) * dt
+            let shockPart: Double = vol * sqrt(dt) * shock
+            let growth: Double = exp(driftPart + shockPart)
             p = p / growth
             values[i] = p
         }
