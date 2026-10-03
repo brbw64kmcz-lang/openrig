@@ -1,0 +1,26 @@
+import SwiftUI
+
+// Startpunkt der App. Der restliche Code steht in ContentView.
+@main
+struct MyApp: App {
+    @StateObject private var app = AppState()
+
+    private var typeSizes: ClosedRange<DynamicTypeSize> {
+        if app.profile.simpleMode {
+            return DynamicTypeSize.xLarge ... DynamicTypeSize.accessibility3
+        }
+        return DynamicTypeSize.xSmall ... DynamicTypeSize.accessibility3
+    }
+
+    var body: some Scene {
+        WindowGroup {
+            RootView()
+                .environmentObject(app)
+                .environmentObject(app.market)
+                .environmentObject(app.portfolio)
+                .preferredColorScheme(.dark)
+                .tint(Theme.blue)
+                .dynamicTypeSize(typeSizes)
+        }
+    }
+}
