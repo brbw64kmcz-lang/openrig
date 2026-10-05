@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<!-- =====================================================================
+     DATEI 4 von 7:  index.html
+     Das Grundgerüst des Fensters: Seitenleiste links, Inhalt rechts,
+     Reiterleiste unten (bei schmalem Fenster, wie auf dem iPhone).
+     Den Inhalt der Seiten baut app.js.
+     ===================================================================== -->
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:">
+  <title>InvestMind</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Seitenleiste (iPad / Mac) -->
+    <aside id="sidebar"></aside>
+
+    <!-- Inhalt -->
+    <main id="detail">
+      <header id="navbar"></header>
+      <div id="screen"></div>
+    </main>
+
+    <!-- Reiterleiste (schmales Fenster, wie iPhone) -->
+    <nav id="tabbar"></nav>
+  </div>
+
+  <!-- Hier erscheinen Dialoge (wie .sheet in SwiftUI) und Hinweise -->
+  <div id="sheet-layer"></div>
+  <div id="toast"></div>
+
+  <!-- Reihenfolge ist wichtig: zuerst die Logik, dann die Oberfläche -->
+  <script src="engines.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
