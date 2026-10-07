@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<!-- =====================================================================
+     ELECTRON FIDDLE – FENSTER 3 von 5:  index.html
+     Grundgerüst des Fensters. Alles in diesem Fenster löschen und diesen
+     Code komplett einfügen.
+     ===================================================================== -->
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:">
+  <title>InvestMind</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Seitenleiste (iPad / Mac) -->
+    <aside id="sidebar"></aside>
+
+    <!-- Inhalt -->
+    <main id="detail">
+      <header id="navbar"></header>
+      <div id="screen"></div>
+    </main>
+
+    <!-- Reiterleiste (schmales Fenster, wie iPhone) -->
+    <nav id="tabbar"></nav>
+  </div>
+
+  <!-- Hier erscheinen Dialoge (wie .sheet in SwiftUI) und Hinweise -->
+  <div id="sheet-layer"></div>
+  <div id="toast"></div>
+
+  <!-- Logik und Oberfläche stehen zusammen in renderer.js -->
+  <script src="./renderer.js"></script>
+</body>
+</html>
