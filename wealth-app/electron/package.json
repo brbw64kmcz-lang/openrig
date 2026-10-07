@@ -1,0 +1,15 @@
+{
+  "name": "investmind",
+  "productName": "InvestMind",
+  "version": "0.1.0",
+  "description": "InvestMind – Lernen, Simulieren, Investieren (Desktop-Version mit Electron, Demodaten)",
+  "main": "main.js",
+  "type": "commonjs",
+  "private": true,
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^44.5.1"
+  }
+}
